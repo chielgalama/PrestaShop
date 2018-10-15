@@ -70,7 +70,7 @@ class MollieWebhookModuleFrontController extends ModuleFrontController
      */
     public function initContent()
     {
-        if (Configuration::get(Mollie::DEBUG_LOG_ALL)) {
+        if (Configuration::get(Mollie::MOLLIE_DEBUG_LOG) == Mollie::DEBUG_LOG_ALL) ) {
             Logger::addLog('Mollie incoming webhook: '.file_get_contents('php://input'));
         }
 
@@ -86,7 +86,7 @@ class MollieWebhookModuleFrontController extends ModuleFrontController
     protected function executeWebhook()
     {
         if (Tools::getValue('testByMollie')) {
-            if (Configuration::get(Mollie::MOLLIE_DEBUG_LOG) == Mollie::DEBUG_LOG_ERRORS) {
+            if (Configuration::get(Mollie::MOLLIE_DEBUG_LOG) >= Mollie::DEBUG_LOG_ERRORS) {
                 Logger::addLog(__METHOD__.' said: Mollie webhook tester successfully communicated with the shop.', Mollie::NOTICE);
             }
 
@@ -96,7 +96,7 @@ class MollieWebhookModuleFrontController extends ModuleFrontController
         $transactionId = Tools::getValue('id');
 
         if (empty($transactionId)) {
-            if (Configuration::get(Mollie::MOLLIE_DEBUG_LOG) == Mollie::DEBUG_LOG_ERRORS) {
+            if (Configuration::get(Mollie::MOLLIE_DEBUG_LOG) >= Mollie::DEBUG_LOG_ERRORS) {
                 Logger::addLog(__METHOD__.' said: Received webhook request without proper transaction ID.', Mollie::WARNING);
             }
 
@@ -108,7 +108,7 @@ class MollieWebhookModuleFrontController extends ModuleFrontController
             $apiPayment = $this->module->api->payments->get($transactionId);
             $transactionId = $apiPayment->id;
         } catch (Exception $e) {
-            if (Configuration::get(Mollie::MOLLIE_DEBUG_LOG) == Mollie::DEBUG_LOG_ERRORS) {
+            if (Configuration::get(Mollie::MOLLIE_DEBUG_LOG) >= Mollie::DEBUG_LOG_ERRORS) {
                 Logger::addLog(__METHOD__.' said: Could not retrieve payment details for transaction_id "'.$transactionId.'". Reason: '.$e->getMessage(), Mollie::WARNING);
             }
 
@@ -172,7 +172,7 @@ class MollieWebhookModuleFrontController extends ModuleFrontController
         $this->saveOrderTransactionData($apiPayment->id, $apiPayment->method, $orderId);
 
         if (!$this->savePaymentStatus($transactionId, $apiPayment->status, $orderId)) {
-            if (Configuration::get(Mollie::MOLLIE_DEBUG_LOG) == Mollie::DEBUG_LOG_ERRORS) {
+            if (Configuration::get(Mollie::MOLLIE_DEBUG_LOG) >= Mollie::DEBUG_LOG_ERRORS) {
                 Logger::addLog(__METHOD__.' said: Could not save Mollie payment status for transaction "'.$transactionId.'". Reason: '.Db::getInstance()->getMsgError(), Mollie::WARNING);
             }
         }
